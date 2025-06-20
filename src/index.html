@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Lukseh.org Launcher</title>
+    <style>
+      body { font-family: sans-serif; margin: 20px; }
+      button, iframe { margin: 10px 0; }
+      #servers{
+        margin-left: 2vw;
+      }
+    </style>
+    <link rel="stylesheet" href="https://lukseh.org/legacy/style.css">
+  </head>
+  <body>
+    <h1>Lukseh.org servers launcher</h1>
+    <h2>CS2 Servers</h2>
+    <div id="servers">
+    <div>
+      <button onclick="connect(27016)">Connect to DM Server</button>
+      <button onclick="connect(27017)">Connect to Pracc Server</button>
+      <!-- <button onclick="runSteamCMD()">Run SteamCMD</button> -->
+    </div>
+    </div>
+    <h2>Skin Changer</h2>
+    <iframe src="https://skins.lukseh.org" width="100%" height="600px"></iframe>
+
+    <script type="module" src="main.js"></script>
+  </body>
+</html>
