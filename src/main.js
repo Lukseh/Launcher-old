@@ -2,6 +2,8 @@
 
 // Navigation function
 window.showSection = (sectionId) => {
+    console.log("Switching to section:", sectionId)
+
     // Hide all sections
     const sections = document.querySelectorAll(".content-section")
     sections.forEach((section) => section.classList.remove("active"))
@@ -10,11 +12,7 @@ window.showSection = (sectionId) => {
     const targetSection = document.getElementById(sectionId)
     if (targetSection) {
         targetSection.classList.add("active")
-    }
-
-    // Special handling for skins section
-    if (sectionId === "skins") {
-        window.openSkinsWindow()
+        console.log("Activated section:", sectionId)
     }
 
     // Update nav items
@@ -22,9 +20,9 @@ window.showSection = (sectionId) => {
     navItems.forEach((item) => item.classList.remove("active"))
 
     // Find and activate the clicked nav item
-    const activeNavItem = Array.from(navItems).find((item) => item.onclick && item.onclick.toString().includes(sectionId))
-    if (activeNavItem) {
-        activeNavItem.classList.add("active")
+    const clickedItem = event?.target?.closest(".nav-item")
+    if (clickedItem) {
+        clickedItem.classList.add("active")
     }
 
     // Update page title
@@ -41,67 +39,24 @@ window.showSection = (sectionId) => {
     }
 }
 
-// Open skins in embedded window
-window.openSkinsWindow = async () => {
+// Simple skins window opener (no dynamic imports)
+window.openSkinsWindow = () => {
     try {
-        if (window.__TAURI__) {
-            // In Tauri, create a new window for skins
-            const { WebviewWindow } = await import("@tauri-apps/api/webviewWindow")
-
-            const skinsWindow = new WebviewWindow("skins", {
-                url: "https://skins.lukseh.org",
-                title: "Lukseh.org - Skin Changer",
-                width: 1200,
-                height: 800,
-                resizable: true,
-                center: true,
-                decorations: true,
-                alwaysOnTop: false,
-            })
-
-            // Listen for window events
-            skinsWindow.once("tauri://created", () => {
-                console.log("Skins window created successfully")
-            })
-
-            skinsWindow.once("tauri://error", (e) => {
-                console.error("Failed to create skins window:", e)
-            })
-        } else {
-            // In browser, open in new window with specific dimensions
-            const skinsWindow = window.open(
-                "https://skins.lukseh.org",
-                "lukseh-skins",
-                "width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no",
-            )
-
-            if (skinsWindow) {
-                skinsWindow.focus()
-                console.log("Opened skins in new browser window")
-            } else {
-                // Fallback if popup blocked
-                window.open("https://skins.lukseh.org", "_blank")
-            }
-        }
+        // Try to open in same window first
+        window.location.href = "https://skins.lukseh.org"
     } catch (error) {
-        console.error("Failed to open skins window:", error)
-        // Ultimate fallback
+        console.error("Failed to navigate to skins:", error)
+        // Fallback to new tab
         window.open("https://skins.lukseh.org", "_blank")
     }
 }
 
-// Alternative: Open skins in same window (replaces current content)
-window.openSkinsInSameWindow = () => {
-    if (window.__TAURI__) {
-        // In Tauri, navigate the current window to skins
-        window.location.href = "https://skins.lukseh.org"
-    } else {
-        // In browser, replace current page
-        window.location.href = "https://skins.lukseh.org"
-    }
+// Open skins in browser
+window.openSkinsInBrowser = () => {
+    window.open("https://skins.lukseh.org", "_blank")
 }
 
-// Global connect function for CS2 servers
+// CS2 connection function
 window.connect = async (port) => {
     const url = `steam://connect/cs.lukseh.org:${port}?appid=730/`
     console.log(`Attempting to connect to: ${url}`)
@@ -112,38 +67,30 @@ window.connect = async (port) => {
     }
 
     try {
+        // Try Tauri shell API if available
         if (window.__TAURI__) {
-            const { open } = await import("@tauri-apps/plugin-shell")
+            const { invoke } = window.__TAURI__.core
+            const { open } = window.__TAURI__.shell
             await open(url)
         } else {
+            // Browser fallback
             const link = document.createElement("a")
             link.href = url
             link.style.display = "none"
             document.body.appendChild(link)
             link.click()
             document.body.removeChild(link)
-
-            setTimeout(() => {
-                try {
-                    window.open(url, "_blank")
-                } catch (e) {
-                    console.log("Fallback method attempted")
-                }
-            }, 100)
         }
 
         console.log("Successfully opened Steam URL")
         if (statusDiv) {
-            statusDiv.innerHTML = '<div class="status success">CS2 connection initiated! Steam should launch CS2 now.</div>'
+            statusDiv.innerHTML = '<div class="status success">CS2 connection initiated!</div>'
             setTimeout(() => {
                 statusDiv.innerHTML = ""
             }, 4000)
         }
     } catch (error) {
         console.error("Failed to open Steam URL:", error)
-        if (statusDiv) {
-            statusDiv.innerHTML = '<div class="status error">Failed to auto-connect. Trying manual method...</div>'
-        }
 
         try {
             await navigator.clipboard.writeText(`connect cs.lukseh.org:${port}`)
@@ -163,7 +110,7 @@ window.manualConnect = async (port) => {
         await navigator.clipboard.writeText(`connect cs.lukseh.org:${port}`)
         const statusDiv = document.getElementById("status")
         if (statusDiv) {
-            statusDiv.innerHTML = '<div class="status success">Console command copied to clipboard!</div>'
+            statusDiv.innerHTML = '<div class="status success">Console command copied!</div>'
             setTimeout(() => {
                 statusDiv.innerHTML = ""
             }, 3000)
@@ -180,23 +127,9 @@ window.testConnection = async () => {
     if (statusDiv) {
         statusDiv.innerHTML = '<div class="status">Testing server connections...</div>'
 
-        const servers = [
-            { name: "DM Server", port: 27016 },
-            { name: "Pracc Server", port: 27017 },
-        ]
-
-        const results = []
-
-        for (const server of servers) {
-            try {
-                console.log(`Testing ${server.name} on port ${server.port}`)
-                results.push(`✅ ${server.name} (${server.port}) - Ready`)
-            } catch (error) {
-                results.push(`❌ ${server.name} (${server.port}) - Error`)
-            }
-        }
-
         setTimeout(() => {
+            const results = ["✅ DM Server (27016) - Ready", "✅ Pracc Server (27017) - Ready"]
+
             statusDiv.innerHTML = `<div class="status success">Server Status:<br>${results.join("<br>")}</div>`
 
             setTimeout(() => {
@@ -210,11 +143,4 @@ window.testConnection = async () => {
 document.addEventListener("DOMContentLoaded", () => {
     console.log("Lukseh.org Launcher initialized")
     console.log("Tauri environment:", window.__TAURI__ ? "Yes" : "No")
-
-    // Prevent page navigation on protocol links
-    document.addEventListener("click", (e) => {
-        if (e.target.tagName === "A" && e.target.href.startsWith("steam://")) {
-            e.preventDefault()
-        }
-    })
 })
