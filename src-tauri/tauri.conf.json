@@ -1,33 +1,43 @@
 {
-  "$schema": "https://schema.tauri.app/config/2",
-  "productName": "luksehorg-launcher",
-  "version": "0.1.0",
-  "identifier": "com.luksehorg-launcher.app",
+  "productName": "Lukseh.org Launcher",
+  "version": "1.0.0",
+  "identifier": "org.lukseh.launcher",
   "build": {
-    "frontendDist": "../src"
+    "beforeDevCommand": "",
+    "beforeBuildCommand": "yarn build",
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420"
   },
   "app": {
-    "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Lukseh.org",
-        "width": 800,
-        "height": 600
+        "title": "Lukseh.org Launcher",
+        "width": 1200,
+        "height": 800,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "decorations": true,
+        "alwaysOnTop": false
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self' https://lukseh.org https://skins.lukseh.org; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://lukseh.org; frame-src https://skins.lukseh.org; connect-src https://cs.lukseh.org;"
     }
   },
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ]
+    "icon": [ "icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico" ],
+    "publisher": "Lukseh.org",
+    "copyright": "© 2025 Lukseh.org",
+    "category": "Game",
+    "shortDescription": "CS2 Server Launcher",
+    "longDescription": "Connect to CS2 servers and customize your gaming experience with the Lukseh.org Launcher."
+  },
+  "plugins": {
+    "shell": {
+      "open": true
+    }
   }
 }
